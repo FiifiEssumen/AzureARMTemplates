@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_resizeVM_name": {
+            "value": null
+        },
+        "actionGroups_alertactiongrp_name": {
+            "value": null
+        },
+        "activitylogalerts_user_alert_name": {
+            "value": null
+        },
+        "networkInterfaces_resizevm672_name": {
+            "value": null
+        },
+        "publicIPAddresses_resizeVM_ip_name": {
+            "value": null
+        },
+        "virtualNetworks_resizeVM_vnet_name": {
+            "value": null
+        },
+        "networkSecurityGroups_resizeVM_nsg_name": {
+            "value": null
+        },
+        "disks_resizeVM_disk1_92b0967374374bd186ab4d4f62fb2629_externalid": {
+            "value": null
+        }
+    }
+}

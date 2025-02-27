@@ -1,0 +1,568 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_MyWhizVNet_name": {
+            "defaultValue": "MyWhizVNet",
+            "type": "String"
+        },
+        "virtualMachineScaleSets_Whizscaleset_name": {
+            "defaultValue": "Whizscaleset",
+            "type": "String"
+        },
+        "networkSecurityGroups_basicNsgMyWhizVNet_nic01_name": {
+            "defaultValue": "basicNsgMyWhizVNet-nic01",
+            "type": "String"
+        },
+        "disks_Whizscaleset_Whizscaleset_0_OsDisk_1_3408a870dd2140cfaf12b2567d613ad7_externalid": {
+            "defaultValue": "/subscriptions/3e5ff226-7b86-4538-8eb7-e1638adc99ab/resourceGroups/rg_eastus_172407_1_173876836366/providers/Microsoft.Compute/disks/Whizscaleset_Whizscaleset_0_OsDisk_1_3408a870dd2140cfaf12b2567d613ad7",
+            "type": "String"
+        },
+        "disks_Whizscaleset_Whizscaleset_1_OsDisk_1_0a30cef0b3d74a3a90745146b0e00963_externalid": {
+            "defaultValue": "/subscriptions/3e5ff226-7b86-4538-8eb7-e1638adc99ab/resourceGroups/rg_eastus_172407_1_173876836366/providers/Microsoft.Compute/disks/Whizscaleset_Whizscaleset_1_OsDisk_1_0a30cef0b3d74a3a90745146b0e00963",
+            "type": "String"
+        },
+        "disks_Whizscaleset_Whizscaleset_2_OsDisk_1_ef694bfdb1614b48ba458d8c21c1abbf_externalid": {
+            "defaultValue": "/subscriptions/3e5ff226-7b86-4538-8eb7-e1638adc99ab/resourceGroups/rg_eastus_172407_1_173876836366/providers/Microsoft.Compute/disks/Whizscaleset_Whizscaleset_2_OsDisk_1_ef694bfdb1614b48ba458d8c21c1abbf",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name')]",
+            "location": "eastus",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'), 'SSH')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('virtualNetworks_MyWhizVNet_name')]",
+            "location": "eastus",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "encryption": {
+                    "enabled": false,
+                    "enforcement": "AllowUnencrypted"
+                },
+                "privateEndpointVNetPolicies": "Disabled",
+                "subnets": [
+                    {
+                        "name": "default",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]",
+                        "properties": {
+                            "addressPrefixes": [
+                                "10.0.0.0/24"
+                            ],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'), '/SSH')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "22",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 300,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('virtualNetworks_MyWhizVNet_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_MyWhizVNet_name'))]"
+            ],
+            "properties": {
+                "addressPrefixes": [
+                    "10.0.0.0/24"
+                ],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('virtualMachineScaleSets_Whizscaleset_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+            ],
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard",
+                "capacity": 3
+            },
+            "zones": [
+                "1",
+                "2",
+                "3"
+            ],
+            "properties": {
+                "singlePlacementGroup": false,
+                "orchestrationMode": "Uniform",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "scaleInPolicy": {
+                    "rules": [
+                        "Default"
+                    ],
+                    "forceDeletion": false
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "whizscale",
+                        "adminUsername": "vm1",
+                        "linuxConfiguration": {
+                            "disablePasswordAuthentication": false,
+                            "provisionVMAgent": true
+                        },
+                        "secrets": [],
+                        "allowExtensionOperations": true,
+                        "requireGuestProvisionSignal": true
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "osType": "Linux",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS"
+                            },
+                            "diskSizeGB": 30
+                        },
+                        "imageReference": {
+                            "publisher": "canonical",
+                            "offer": "0001-com-ubuntu-server-jammy",
+                            "sku": "22_04-lts-gen2",
+                            "version": "latest"
+                        },
+                        "diskControllerType": "SCSI"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "MyWhizVNet-nic01",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "disableTcpStateTracking": false,
+                                    "networkSecurityGroup": {
+                                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]"
+                                    },
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": false,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "MyWhizVNet-nic01-defaultIpConfiguration",
+                                            "properties": {
+                                                "publicIPAddressConfiguration": {
+                                                    "name": "publicIp-MyWhizVNet-nic01",
+                                                    "properties": {
+                                                        "idleTimeoutInMinutes": 15,
+                                                        "ipTags": [],
+                                                        "publicIPAddressVersion": "IPv4"
+                                                    }
+                                                },
+                                                "primary": true,
+                                                "subnet": {
+                                                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+                                                },
+                                                "privateIPAddressVersion": "IPv4"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "diagnosticsProfile": {
+                        "bootDiagnostics": {
+                            "enabled": true
+                        }
+                    },
+                    "extensionProfile": {
+                        "extensions": []
+                    }
+                },
+                "overprovision": false,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "zoneBalance": false,
+                "platformFaultDomainCount": 1
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Whizscaleset_name'), '/0')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Whizscaleset_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+            ],
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard"
+            },
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "MyWhizVNet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "disableTcpStateTracking": false,
+                                "networkSecurityGroup": {
+                                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "MyWhizVNet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "publicIPAddressConfiguration": {
+                                                "name": "publicIp-MyWhizVNet-nic01",
+                                                "properties": {
+                                                    "idleTimeoutInMinutes": 15,
+                                                    "ipTags": [],
+                                                    "publicIPAddressVersion": "IPv4"
+                                                }
+                                            },
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+                                            },
+                                            "privateIPAddressVersion": "IPv4"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "Whizscaleset_Whizscaleset_0_OsDisk_1_3408a870dd2140cfaf12b2567d613ad7",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[parameters('disks_Whizscaleset_Whizscaleset_0_OsDisk_1_3408a870dd2140cfaf12b2567d613ad7_externalid')]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "whizscale000000",
+                    "adminUsername": "vm1",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Whizscaleset_name'), '0'), '/networkInterfaces/MyWhizVNet-nic01')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Whizscaleset_name'), '/1')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Whizscaleset_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+            ],
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard"
+            },
+            "zones": [
+                "2"
+            ],
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "MyWhizVNet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "disableTcpStateTracking": false,
+                                "networkSecurityGroup": {
+                                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "MyWhizVNet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "publicIPAddressConfiguration": {
+                                                "name": "publicIp-MyWhizVNet-nic01",
+                                                "properties": {
+                                                    "idleTimeoutInMinutes": 15,
+                                                    "ipTags": [],
+                                                    "publicIPAddressVersion": "IPv4"
+                                                }
+                                            },
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+                                            },
+                                            "privateIPAddressVersion": "IPv4"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "Whizscaleset_Whizscaleset_1_OsDisk_1_0a30cef0b3d74a3a90745146b0e00963",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[parameters('disks_Whizscaleset_Whizscaleset_1_OsDisk_1_0a30cef0b3d74a3a90745146b0e00963_externalid')]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "whizscale000001",
+                    "adminUsername": "vm1",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Whizscaleset_name'), '1'), '/networkInterfaces/MyWhizVNet-nic01')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[concat(parameters('virtualMachineScaleSets_Whizscaleset_name'), '/2')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', parameters('virtualMachineScaleSets_Whizscaleset_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+            ],
+            "sku": {
+                "name": "Standard_B2s",
+                "tier": "Standard"
+            },
+            "zones": [
+                "3"
+            ],
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "MyWhizVNet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "disableTcpStateTracking": false,
+                                "networkSecurityGroup": {
+                                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_basicNsgMyWhizVNet_nic01_name'))]"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "MyWhizVNet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "publicIPAddressConfiguration": {
+                                                "name": "publicIp-MyWhizVNet-nic01",
+                                                "properties": {
+                                                    "idleTimeoutInMinutes": 15,
+                                                    "ipTags": [],
+                                                    "publicIPAddressVersion": "IPv4"
+                                                }
+                                            },
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'default')]"
+                                            },
+                                            "privateIPAddressVersion": "IPv4"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "Whizscaleset_Whizscaleset_2_OsDisk_1_ef694bfdb1614b48ba458d8c21c1abbf",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[parameters('disks_Whizscaleset_Whizscaleset_2_OsDisk_1_ef694bfdb1614b48ba458d8c21c1abbf_externalid')]"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "whizscale000002",
+                    "adminUsername": "vm1",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', parameters('virtualMachineScaleSets_Whizscaleset_name'), '2'), '/networkInterfaces/MyWhizVNet-nic01')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        }
+    ]
+}

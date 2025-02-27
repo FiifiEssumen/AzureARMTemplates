@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_MyWhizVNet_name": {
+            "value": null
+        },
+        "virtualMachineScaleSets_Whizscaleset_name": {
+            "value": null
+        },
+        "networkSecurityGroups_basicNsgMyWhizVNet_nic01_name": {
+            "value": null
+        },
+        "disks_Whizscaleset_Whizscaleset_0_OsDisk_1_3408a870dd2140cfaf12b2567d613ad7_externalid": {
+            "value": null
+        },
+        "disks_Whizscaleset_Whizscaleset_1_OsDisk_1_0a30cef0b3d74a3a90745146b0e00963_externalid": {
+            "value": null
+        },
+        "disks_Whizscaleset_Whizscaleset_2_OsDisk_1_ef694bfdb1614b48ba458d8c21c1abbf_externalid": {
+            "value": null
+        }
+    }
+}

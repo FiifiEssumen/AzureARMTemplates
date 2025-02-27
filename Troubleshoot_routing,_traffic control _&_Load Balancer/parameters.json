@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_myWhizVM1_name": {
+            "value": null
+        },
+        "virtualMachines_myWhizVM2_name": {
+            "value": null
+        },
+        "publicIPAddresses_mywhizip_name": {
+            "value": null
+        },
+        "virtualNetworks_MyWhizVNet_name": {
+            "value": null
+        },
+        "natGateways_MyWhizNATGateway_name": {
+            "value": null
+        },
+        "publicIPAddresses_myWhizNATIP_name": {
+            "value": null
+        },
+        "networkInterfaces_mywhizvm1703_name": {
+            "value": null
+        },
+        "networkInterfaces_mywhizvm2719_name": {
+            "value": null
+        },
+        "bastionHosts_MyWhizVNet_Bastion_name": {
+            "value": null
+        },
+        "networkSecurityGroups_myWhizNSG_name": {
+            "value": null
+        },
+        "loadBalancers_myWhizLoadBalancer_name": {
+            "value": null
+        },
+        "publicIPAddresses_mywhizvnet_bastion_name": {
+            "value": null
+        }
+    }
+}

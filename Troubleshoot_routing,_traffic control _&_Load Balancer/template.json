@@ -1,0 +1,710 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualMachines_myWhizVM1_name": {
+            "defaultValue": "myWhizVM1",
+            "type": "String"
+        },
+        "virtualMachines_myWhizVM2_name": {
+            "defaultValue": "myWhizVM2",
+            "type": "String"
+        },
+        "publicIPAddresses_mywhizip_name": {
+            "defaultValue": "mywhizip",
+            "type": "String"
+        },
+        "virtualNetworks_MyWhizVNet_name": {
+            "defaultValue": "MyWhizVNet",
+            "type": "String"
+        },
+        "natGateways_MyWhizNATGateway_name": {
+            "defaultValue": "MyWhizNATGateway",
+            "type": "String"
+        },
+        "publicIPAddresses_myWhizNATIP_name": {
+            "defaultValue": "myWhizNATIP",
+            "type": "String"
+        },
+        "networkInterfaces_mywhizvm1703_name": {
+            "defaultValue": "mywhizvm1703",
+            "type": "String"
+        },
+        "networkInterfaces_mywhizvm2719_name": {
+            "defaultValue": "mywhizvm2719",
+            "type": "String"
+        },
+        "bastionHosts_MyWhizVNet_Bastion_name": {
+            "defaultValue": "MyWhizVNet-Bastion",
+            "type": "String"
+        },
+        "networkSecurityGroups_myWhizNSG_name": {
+            "defaultValue": "myWhizNSG",
+            "type": "String"
+        },
+        "loadBalancers_myWhizLoadBalancer_name": {
+            "defaultValue": "myWhizLoadBalancer",
+            "type": "String"
+        },
+        "publicIPAddresses_mywhizvnet_bastion_name": {
+            "defaultValue": "mywhizvnet-bastion",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('networkSecurityGroups_myWhizNSG_name')]",
+            "location": "westeurope",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "default-allow-rdp",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', parameters('networkSecurityGroups_myWhizNSG_name'), 'default-allow-rdp')]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "[concat(parameters('networkSecurityGroups_myWhizNSG_name'), 'Rule')]",
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups/securityRules', parameters('networkSecurityGroups_myWhizNSG_name'), concat(parameters('networkSecurityGroups_myWhizNSG_name'), 'Rule'))]",
+                        "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1001,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('publicIPAddresses_mywhizip_name')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "zones": [
+                "3",
+                "1",
+                "2"
+            ],
+            "properties": {
+                "ipAddress": "9.163.137.160",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": [],
+                "ddosSettings": {
+                    "protectionMode": "VirtualNetworkInherited"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('publicIPAddresses_mywhizvnet_bastion_name')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "ipAddress": "108.142.177.109",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": [],
+                "ddosSettings": {
+                    "protectionMode": "VirtualNetworkInherited"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('virtualMachines_myWhizVM1_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm1703_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "additionalCapabilities": {
+                    "hibernationEnabled": false
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-datacenter-gensecond",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_myWhizVM1_name'), '_OsDisk_1_ccd7363118b444eba9a2ddbb8879866d')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_myWhizVM1_name'), '_OsDisk_1_ccd7363118b444eba9a2ddbb8879866d'))]"
+                        },
+                        "deleteOption": "Delete",
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_myWhizVM1_name')]",
+                    "adminUsername": "Machine1",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS",
+                            "assessmentMode": "ImageDefault",
+                            "enableHotpatching": false
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm1703_name'))]",
+                            "properties": {
+                                "deleteOption": "Detach"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('virtualMachines_myWhizVM2_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm2719_name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2s"
+                },
+                "additionalCapabilities": {
+                    "hibernationEnabled": false
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-datacenter-gensecond",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "[concat(parameters('virtualMachines_myWhizVM2_name'), '_OsDisk_1_78e1df1ca0d34eb6844c5099090bfd3d')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS",
+                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_myWhizVM2_name'), '_OsDisk_1_78e1df1ca0d34eb6844c5099090bfd3d'))]"
+                        },
+                        "deleteOption": "Delete",
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_myWhizVM2_name')]",
+                    "adminUsername": "Machine2",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS",
+                            "assessmentMode": "ImageDefault",
+                            "enableHotpatching": false
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm2719_name'))]",
+                            "properties": {
+                                "deleteOption": "Detach"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('loadBalancers_myWhizLoadBalancer_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_mywhizip_name'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "myWhizFrontend",
+                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name')), '/frontendIPConfigurations/myWhizFrontend')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_mywhizip_name'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "myWhizBackendPool",
+                        "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]",
+                        "properties": {
+                            "loadBalancerBackendAddresses": [
+                                {
+                                    "name": "rg_westeurope_172407_1_173951937275_mywhizvm1703ipconfig1",
+                                    "properties": {}
+                                },
+                                {
+                                    "name": "rg_westeurope_172407_1_173951937275_mywhizvm2719ipconfig1",
+                                    "properties": {}
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "myWhizHTTPRule",
+                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name')), '/loadBalancingRules/myWhizHTTPRule')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name')), '/frontendIPConfigurations/myWhizFrontend')]"
+                            },
+                            "frontendPort": 80,
+                            "backendPort": 80,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 4,
+                            "protocol": "Tcp",
+                            "enableTcpReset": true,
+                            "loadDistribution": "Default",
+                            "disableOutboundSnat": true,
+                            "backendAddressPool": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]"
+                            },
+                            "backendAddressPools": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]"
+                                }
+                            ],
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name')), '/probes/myWhizHealthProbe')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "myWhizHealthProbe",
+                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name')), '/probes/myWhizHealthProbe')]",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 80,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 1,
+                            "probeThreshold": 1,
+                            "noHealthyBackendsBehavior": "AllProbedDown"
+                        }
+                    }
+                ],
+                "inboundNatRules": [],
+                "outboundRules": [],
+                "inboundNatPools": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers/backendAddressPools",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('loadBalancers_myWhizLoadBalancer_name'), '/myWhizBackendPool')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', parameters('loadBalancers_myWhizLoadBalancer_name'))]"
+            ],
+            "properties": {
+                "loadBalancerBackendAddresses": [
+                    {
+                        "name": "rg_westeurope_172407_1_173951937275_mywhizvm1703ipconfig1",
+                        "properties": {}
+                    },
+                    {
+                        "name": "rg_westeurope_172407_1_173951937275_mywhizvm2719ipconfig1",
+                        "properties": {}
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/natGateways",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('natGateways_MyWhizNATGateway_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_myWhizNATIP_name'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "idleTimeoutInMinutes": 15,
+                "publicIpAddresses": [
+                    {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_myWhizNATIP_name'))]"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('networkSecurityGroups_myWhizNSG_name'), '/default-allow-rdp')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "3389",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 1000,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('networkSecurityGroups_myWhizNSG_name'), '/', parameters('networkSecurityGroups_myWhizNSG_name'), 'Rule')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+            ],
+            "properties": {
+                "protocol": "TCP",
+                "sourcePortRange": "*",
+                "destinationPortRange": "80",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 1001,
+                "direction": "Inbound",
+                "sourcePortRanges": [],
+                "destinationPortRanges": [],
+                "sourceAddressPrefixes": [],
+                "destinationAddressPrefixes": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('publicIPAddresses_myWhizNATIP_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
+            "properties": {
+                "natGateway": {
+                    "id": "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+                },
+                "ipAddress": "172.201.26.232",
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": [],
+                "ddosSettings": {
+                    "protectionMode": "VirtualNetworkInherited"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('virtualNetworks_MyWhizVNet_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.0.0/16"
+                    ]
+                },
+                "encryption": {
+                    "enabled": false,
+                    "enforcement": "AllowUnencrypted"
+                },
+                "privateEndpointVNetPolicies": "Disabled",
+                "subnets": [
+                    {
+                        "name": "myWhizBackendSubnet",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'myWhizBackendSubnet')]",
+                        "properties": {
+                            "addressPrefixes": [
+                                "10.1.0.0/24"
+                            ],
+                            "natGateway": {
+                                "id": "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+                            },
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    },
+                    {
+                        "name": "AzureBastionSubnet",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'AzureBastionSubnet')]",
+                        "properties": {
+                            "addressPrefixes": [
+                                "10.1.1.0/26"
+                            ],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('virtualNetworks_MyWhizVNet_name'), '/AzureBastionSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_MyWhizVNet_name'))]"
+            ],
+            "properties": {
+                "addressPrefixes": [
+                    "10.1.1.0/26"
+                ],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('bastionHosts_MyWhizVNet_Bastion_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_mywhizvnet_bastion_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'AzureBastionSubnet')]"
+            ],
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "dnsName": "bst-c0800548-8312-40f2-9966-63f270bbe836.bastion.azure.com",
+                "scaleUnits": 2,
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "id": "[concat(resourceId('Microsoft.Network/bastionHosts', parameters('bastionHosts_MyWhizVNet_Bastion_name')), '/bastionHostIpConfigurations/IpConf')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_mywhizvnet_bastion_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'AzureBastionSubnet')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2024-03-01",
+            "name": "[concat(parameters('virtualNetworks_MyWhizVNet_name'), '/myWhizBackendSubnet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_MyWhizVNet_name'))]",
+                "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+            ],
+            "properties": {
+                "addressPrefixes": [
+                    "10.1.0.0/24"
+                ],
+                "natGateway": {
+                    "id": "[resourceId('Microsoft.Network/natGateways', parameters('natGateways_MyWhizNATGateway_name'))]"
+                },
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('networkInterfaces_mywhizvm1703_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'myWhizBackendSubnet')]",
+                "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+            ],
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "id": "[concat(resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm1703_name')), '/ipConfigurations/ipconfig1')]",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "privateIPAddress": "10.1.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'myWhizBackendSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "disableTcpStateTracking": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+                },
+                "nicType": "Standard",
+                "auxiliaryMode": "None",
+                "auxiliarySku": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2024-03-01",
+            "name": "[parameters('networkInterfaces_mywhizvm2719_name')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'myWhizBackendSubnet')]",
+                "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+            ],
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "id": "[concat(resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_mywhizvm2719_name')), '/ipConfigurations/ipconfig1')]",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "privateIPAddress": "10.1.0.5",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_MyWhizVNet_name'), 'myWhizBackendSubnet')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('loadBalancers_myWhizLoadBalancer_name'), 'myWhizBackendPool')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "disableTcpStateTracking": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_myWhizNSG_name'))]"
+                },
+                "nicType": "Standard",
+                "auxiliaryMode": "None",
+                "auxiliarySku": "None"
+            }
+        }
+    ]
+}
+//With this deployment, When you take the frontEndIP of the Load Balancer, it was pointting to the html of only one VM."This is VM2" This is because of Session persistence 
+//was congidured to Source IP and protocol So we had to change the session control in the Load Balancer to None. This helped in distributing the traffic to both the VMs.
+//This means if the html file content is the same on both VMs, the traffic will be distributed to both VMs.
+
+//VNet->NAT Gateway->Load Balancer->VMs->Vms
+
+
+//Commands used on VM Powershell    
+//Install-WindowsFeature -name Web-Server -IncludeManagementTools
+//Remove-Item C:\inetpub\wwwroot\iisstart.htm
+//Add-Content -Path "C:\inetpub\wwwroot\iisstart.htm" -Value $("Hello World from " + $env:computername)

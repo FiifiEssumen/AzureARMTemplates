@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerapps_samapp_name": {
+            "value": null
+        },
+        "managedEnvironments_managedEnvironment_rgeastus1724071_a434_name": {
+            "value": null
+        },
+        "workspaces_workspacergeastus17240711738332470779ea7_name": {
+            "value": null
+        }
+    }
+}

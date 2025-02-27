@@ -1,0 +1,1 @@
+az deployment group create --resource-group rg_eastus_172407_1_173763339882 --template-file template.json --parameters batchAccountName=whizbatch123 location=eastus

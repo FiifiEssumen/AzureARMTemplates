@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "availabilitySets_WhizAvail_name": {
+            "value": null
+        },
+        "virtualMachines_WhizlabAvail1_name": {
+            "value": null
+        },
+        "virtualMachines_WhizlabAvail2_name": {
+            "value": null
+        },
+        "networkInterfaces_whizlabavail140_name": {
+            "value": null
+        },
+        "networkInterfaces_whizlabavail2252_name": {
+            "value": null
+        },
+        "publicIPAddresses_WhizlabAvail1_ip_name": {
+            "value": null
+        },
+        "publicIPAddresses_WhizlabAvail2_ip_name": {
+            "value": null
+        },
+        "virtualNetworks_WhizlabAvail1_vnet_name": {
+            "value": null
+        },
+        "networkSecurityGroups_WhizlabAvail1_nsg_name": {
+            "value": null
+        },
+        "networkSecurityGroups_WhizlabAvail2_nsg_name": {
+            "value": null
+        },
+        "disks_WhizlabAvail1_OsDisk_1_1f5888b2dc9845c88f3bcd70c936371c_externalid": {
+            "value": null
+        },
+        "disks_WhizlabAvail2_OsDisk_1_a98afd78272748d99fa939ecbaa61e4a_externalid": {
+            "value": null
+        }
+    }
+}
